@@ -1,0 +1,17 @@
+.card-header.bg-success {
+    background-color: #28a745 !important;
+}
+
+.card-header.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+.card-header.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+}
+
+.nav-tabs .nav-link.active {
+    font-weight: bold;
+    border-bottom: 3px solid #0d6efd;
+}

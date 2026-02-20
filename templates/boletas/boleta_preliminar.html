@@ -1,0 +1,176 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <title>Boleta Preliminar - Pedido #{{ pedido.numero_diario }}</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            font-size: 11px;
+            margin: 0;
+            padding: 0;
+            background: #fff;
+            color: #333;
+        }
+
+        .ticket {
+            width: 300px; /* más compacto */
+            margin: auto;
+            padding: 10px;
+            background: #fff;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .header img {
+            width: 60px; /* logo más pequeño */
+            margin-bottom: 2px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 13px;
+            color: #2c3e50;
+        }
+
+        .header p {
+            margin: 1px 0;
+            font-size: 9px;
+            color: #555;
+        }
+
+        .info {
+            font-size: 9px;
+            margin: 5px 0;
+            padding: 4px 0;
+            border-top: 1px dashed #ccc;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .info p {
+            margin: 2px 0;
+        }
+
+        /* Solo detalle de pedidos con columnas */
+        table.detalle {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+        }
+
+        table.detalle th,
+        table.detalle td {
+            border: 1px solid #ccc;
+            padding: 4px 2px;
+            font-size: 9.5px;
+        }
+
+        table.detalle th {
+            background: #f4f4f4;
+            font-weight: bold;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        table.detalle td {
+            vertical-align: top;
+        }
+
+        td.text-right {
+            text-align: right;
+        }
+
+        .totales td {
+            border: none;
+            font-weight: bold;
+            font-size: 11px;
+            padding-top: 4px;
+        }
+
+        .totales .monto {
+            color: #27ae60;
+            font-size: 12px;
+        }
+
+        .footer {
+            margin-top: 8px;
+            text-align: center;
+            font-size: 9px;
+            color: #666;
+        }
+
+        .footer strong {
+            display: block;
+            margin-top: 3px;
+            font-size: 10px;
+            color: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ticket">
+        <div class="header">
+            <img src="{% static 'img/logo.png' %}" alt="Logo">
+            <h1>Restaurante M&M</h1>
+            <p>RUC: 00000000000</p>
+            <p>{{ config.direccion|default:"Dirección no especificada" }}</p>
+            <p>Tel: {{ config.telefono|default:"No especificado" }}</p>
+            <h2 style="font-size:11px; margin-top:4px; color:#e67e22;">BOLETA PRELIMINAR</h2>
+        </div>
+
+        <div class="info">
+            <p><strong>Pedido:</strong> {{ pedido.numero_diario }}/{{ fecha|date:"d/m/Y" }}</p>
+            <p><strong>Mesa:</strong> {{ pedido.mesa.numero }}</p>
+            <p><strong>Cliente:</strong> {{ pedido.cliente|default:"No especificado" }}</p>
+            <p><strong>Mozo:</strong> {{ pedido.mozo.get_full_name|default:pedido.mozo.username }}</p>
+            <p><strong>Hora:</strong> {{ fecha|date:"H:i" }}</p>
+        </div>
+
+        <table class="detalle">
+            <thead>
+                <tr>
+                    <th style="width:8%;">#</th>
+                    <th style="width:12%;">Cant.</th>
+                    <th style="width:50%;">Descripción</th>
+                    <th style="width:20%;">Importe</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in detalles %}
+                <tr>
+                    <td style="text-align:center;">{{ forloop.counter }}</td>
+                    <td style="text-align:center;">{{ detalle.cantidad }}</td>
+                    <td>
+                        {% if detalle.plato %}{{ detalle.plato.nombre }}
+                        {% elif detalle.producto %}{{ detalle.producto.nombre }}
+                        {% endif %}
+                        {% if detalle.observaciones %}
+                        <br><small style="color:#999;">({{ detalle.observaciones }})</small>
+                        {% endif %}
+                    </td>
+                    <td class="text-right">S/ {{ detalle.subtotal }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="totales">
+                    <td colspan="3" class="text-right">TOTAL</td>
+                    <td class="text-right monto">S/ {{ total }}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="footer">
+            <p><em>Este es un comprobante preliminar,<br>no válido como boleta o factura.</em></p>
+            <strong>¡Gracias por su preferencia!</strong>
+        </div>
+    </div>
+</body>
+
+</html>

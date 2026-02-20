@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card card-main">
+    <div class="card-header bg-dark text-white d-flex justify-content-between">
+        <h4>Reportes de Ventas</h4>
+        <div>
+            <a href="{% url 'administracion:generar_reporte' 'diario' %}" class="btn btn-primary btn-sm">📅 Diario</a>
+            <a href="{% url 'administracion:generar_reporte' 'semanal' %}" class="btn btn-info btn-sm">📆 Semanal</a>
+            <a href="{% url 'administracion:generar_reporte' 'mensual' %}" class="btn btn-success btn-sm">🗓️
+                Mensual</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Desde</th>
+                    <th>Hasta</th>
+                    <th>Total Ventas</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reportes %}
+                <tr>
+                    <td>{{ r.tipo_reporte|title }}</td>
+                    <td>{{ r.fecha_inicio|date:"d/m/Y" }}</td>
+                    <td>{{ r.fecha_fin|date:"d/m/Y" }}</td>
+                    <td>S/ {{ r.total_ventas|floatformat:2 }}</td>
+                    <td>
+                        <a href="{% url 'administracion:reporte_detail' r.id %}"
+                            class="btn btn-sm btn-secondary">Ver</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">No hay reportes generados</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+</div>
+{% endblock %}

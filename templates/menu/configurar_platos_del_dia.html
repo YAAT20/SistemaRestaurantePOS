@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Configurar Platos del Día{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+	<div class="card shadow-lg border-0 rounded-3">
+		<!-- Encabezado -->
+		<div class="card-header bg-gradient bg-primary text-white d-flex justify-content-between align-items-center">
+			<h4 class="mb-0 fw-bold">
+				<i class="fas fa-calendar-day me-2"></i> Configurar Platos del Día
+			</h4>
+			<div class="d-flex gap-2">
+				<a href="{% url 'menu:plato_create' %}" class="btn btn-success btn-sm d-flex align-items-center shadow-sm">
+					<i class="fas fa-plus me-1"></i> Nuevo
+				</a>			
+				<a href="{% url 'menu:plato_list' %}" class="btn btn-light btn-sm shadow-sm">
+					<i class="fas fa-arrow-left"></i> Volver
+				</a>
+			</div>
+		</div>
+
+		<!-- Formulario -->
+		<form method="post">
+			{% csrf_token %}
+			<div class="card-body">
+				<p class="text-muted mb-3">
+					Selecciona los platos que estarán disponibles hoy y define su <b>stock diario</b> y <b>precio</b>.
+					<br><span class="fw-bold text-danger">* Nota:</span> Las <b>entradas</b> no tienen precio.
+				</p>
+
+				<!-- Botón seleccionar todos -->
+				<div class="mb-3 d-flex justify-content-end">
+					<button type="button" id="toggle-select-all" class="btn btn-outline-secondary btn-sm">
+						<i class="fas fa-check-double"></i> Seleccionar todos
+					</button>
+				</div>
+
+				<!-- Entradas -->
+				<h5 class="mt-4"><i class="fas fa-leaf text-success me-2"></i> Entradas del Día</h5>
+				<div class="table-responsive">
+					<table class="table table-hover align-middle shadow-sm">
+						<thead class="table-light">
+							<tr>
+								<th class="text-center">✔</th>
+								<th>Nombre</th>
+								<th class="text-center">Stock Diario</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for plato in platos %}
+								{% if plato.tipo == "entrada" %}
+									<tr class="plato-row {% if plato.id in seleccionados %}table-success{% endif %}">
+										<td class="text-center">
+											<input type="checkbox"
+											       class="form-check-input form-check-lg toggle-checkbox"
+											       name="platos"
+											       value="{{ plato.id }}"
+											       {% if plato.id in seleccionados %}checked{% endif %}>
+										</td>
+										<td class="fw-semibold">{{ plato.nombre }}</td>
+										<td class="text-center">
+											<input type="number"
+												name="stock_{{ plato.id }}"
+												value="{{ plato.stock_diario }}"
+												class="form-control form-control-sm text-center stock-input"
+												min="0" max="999" step="1"
+												{% if plato.id not in seleccionados %}disabled{% endif %}>
+										</td>
+									</tr>
+								{% endif %}
+							{% empty %}
+								<tr><td colspan="3" class="text-center text-muted py-3">No hay entradas registradas.</td></tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Menú -->
+				<h5 class="mt-4"><i class="fas fa-list text-primary me-2"></i> Platos del Menú</h5>
+				<div class="table-responsive">
+					<table class="table table-hover align-middle shadow-sm">
+						<thead class="table-light">
+							<tr>
+								<th class="text-center">✔</th>
+								<th>Nombre</th>
+								<th class="text-center">Precio (S/)</th>
+								<th class="text-center">Stock Diario</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for plato in platos %}
+								{% if plato.tipo == "menu" %}
+									<tr class="plato-row {% if plato.id in seleccionados %}table-success{% endif %}">
+										<td class="text-center">
+											<input type="checkbox"
+											       class="form-check-input form-check-lg toggle-checkbox"
+											       name="platos"
+											       value="{{ plato.id }}"
+											       {% if plato.id in seleccionados %}checked{% endif %}>
+										</td>
+										<td class="fw-semibold">{{ plato.nombre }}</td>
+										<td class="text-center">
+											<input type="number"
+												name="precio_{{ plato.id }}"
+												value="{{ plato.precio|floatformat:2 }}"
+												class="form-control form-control-sm text-center"
+												{% if plato.id not in seleccionados %}disabled{% endif %}>
+											<span class="text-muted small">Actual: {{ plato.precio|default:"Sin precio" }}</span>
+										</td>
+										<td class="text-center">
+											<input type="number"
+												name="stock_{{ plato.id }}"
+												value="{{ plato.stock_diario }}"
+												class="form-control form-control-sm text-center stock-input"
+												min="0" max="999" step="1"
+												{% if plato.id not in seleccionados %}disabled{% endif %}>
+										</td>
+									</tr>
+								{% endif %}
+							{% empty %}
+								<tr><td colspan="4" class="text-center text-muted py-3">No hay menús registrados.</td></tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				<!-- Desayunos -->
+				<h5 class="mt-4"><i class="fas fa-list text-primary me-2"></i> Desayunos</h5>
+				<div class="table-responsive">
+					<table class="table table-hover align-middle shadow-sm">
+						<thead class="table-light">
+							<tr>
+								<th class="text-center">✔</th>
+								<th>Nombre</th>
+								<th class="text-center">Precio (S/)</th>
+								<th class="text-center">Stock Diario</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for plato in platos %}
+								{% if plato.tipo == "desayuno" %}
+									<tr class="plato-row {% if plato.id in seleccionados %}table-success{% endif %}">
+										<td class="text-center">
+											<input type="checkbox"
+											       class="form-check-input form-check-lg toggle-checkbox"
+											       name="platos"
+											       value="{{ plato.id }}"
+											       {% if plato.id in seleccionados %}checked{% endif %}>
+										</td>
+										<td class="fw-semibold">{{ plato.nombre }}</td>
+										<td class="text-center">
+											<input type="number"
+												name="precio_{{ plato.id }}"
+												value="{{ plato.precio|floatformat:2 }}"
+												class="form-control form-control-sm text-center"
+												{% if plato.id not in seleccionados %}disabled{% endif %}>
+											<span class="text-muted small">Actual: {{ plato.precio|default:"Sin precio" }}</span>
+										</td>
+										<td class="text-center">
+											<input type="number"
+												name="stock_{{ plato.id }}"
+												value="{{ plato.stock_diario }}"
+												class="form-control form-control-sm text-center stock-input"
+												min="0" max="999" step="1"
+												{% if plato.id not in seleccionados %}disabled{% endif %}>
+										</td>
+									</tr>
+								{% endif %}
+							{% empty %}
+								<tr><td colspan="4" class="text-center text-muted py-3">No hay menús registrados.</td></tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Carta -->
+				<h5 class="mt-4"><i class="fas fa-concierge-bell text-dark me-2"></i> Platos a la Carta</h5>
+				<div class="table-responsive">
+					<table class="table table-hover align-middle shadow-sm">
+						<thead class="table-light">
+							<tr>
+								<th class="text-center">✔</th>
+								<th>Nombre</th>
+								<th class="text-center">Precio (S/)</th>
+								<th class="text-center">Stock Diario</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for plato in platos %}
+								{% if plato.tipo == "carta" %}
+									<tr class="plato-row {% if plato.id in seleccionados %}table-success{% endif %}">
+										<td class="text-center">
+											<input type="checkbox"
+											       class="form-check-input form-check-lg toggle-checkbox"
+											       name="platos"
+											       value="{{ plato.id }}"
+											       {% if plato.id in seleccionados %}checked{% endif %}>
+										</td>
+										<td class="fw-semibold">{{ plato.nombre }}</td>
+										<td class="text-center">
+											<input type="number"
+												name="precio_{{ plato.id }}"
+												value="{{ plato.precio|floatformat:2 }}"
+												class="form-control form-control-sm text-center"
+												{% if plato.id not in seleccionados %}disabled{% endif %}>
+												<span class="text-muted small">Actual: {{ plato.precio|default:"Sin precio" }}</span>
+										</td>
+										<td class="text-center">
+											<input type="number"
+												name="stock_{{ plato.id }}"
+												value="{{ plato.stock_diario }}"
+												class="form-control form-control-sm text-center stock-input"
+												min="0" max="999" step="1"
+												{% if plato.id not in seleccionados %}disabled{% endif %}>
+										</td>
+									</tr>
+								{% endif %}
+							{% empty %}
+								<tr><td colspan="4" class="text-center text-muted py-3">No hay platos a la carta registrados.</td></tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<!-- Botones -->
+			<div class="card-footer d-flex justify-content-end gap-2">
+				<button type="reset" class="btn btn-outline-warning px-3">
+					<i class="fas fa-undo"></i> Restablecer
+				</button>
+				<button type="submit" class="btn btn-primary px-3">
+					<i class="fas fa-save"></i> Guardar selección
+				</button>
+			</div>
+		</form>
+	</div>
+</div>
+
+<!-- 🎨 Estilos UX/UI -->
+<style>
+	.form-check-lg {
+		width: 1.3em;
+		height: 1.3em;
+		cursor: pointer;
+	}
+	.plato-row {
+		transition: background 0.2s ease-in-out;
+	}
+	.plato-row:hover {
+		background-color: #f1f3f5 !important;
+		cursor: pointer;
+	}
+	.plato-row.table-success {
+		background-color: #d4edda !important;
+	}
+</style>
+
+<script>
+	document.addEventListener("DOMContentLoaded", () => {
+		const toggleBtn = document.getElementById("toggle-select-all");
+		const rows = document.querySelectorAll(".plato-row");
+
+		const updateButtonLabel = () => {
+			const allCheckboxes = document.querySelectorAll(".toggle-checkbox");
+			const allChecked = [...allCheckboxes].every(chk => chk.checked);
+			toggleBtn.innerHTML = allChecked
+				? '<i class="fas fa-ban"></i> Deseleccionar todos'
+				: '<i class="fas fa-check-double"></i> Seleccionar todos';
+		};
+
+		rows.forEach(row => {
+			const checkbox = row.querySelector(".toggle-checkbox");
+			const stockInput = row.querySelector(".stock-input");
+			const precioInput = row.querySelector("input[name^='precio_']");
+
+			row.addEventListener("click", (e) => {
+				if (e.target.tagName !== "INPUT") {
+					checkbox.checked = !checkbox.checked;
+					checkbox.dispatchEvent(new Event("change"));
+				}
+			});
+
+			checkbox.addEventListener("change", () => {
+				row.classList.toggle("table-success", checkbox.checked);
+
+				// habilitar/deshabilitar stock
+				if (stockInput) {
+					stockInput.disabled = !checkbox.checked;
+					if (!checkbox.checked) stockInput.value = "";
+				}
+
+				// habilitar/deshabilitar precio (solo en menú/carta)
+				if (precioInput) {
+					precioInput.disabled = !checkbox.checked;
+					if (!checkbox.checked) precioInput.value = "";
+				}
+
+				updateButtonLabel();
+			});
+		});
+
+		toggleBtn.addEventListener("click", () => {
+			const allCheckboxes = document.querySelectorAll(".toggle-checkbox");
+			const allChecked = [...allCheckboxes].every(chk => chk.checked);
+			allCheckboxes.forEach(chk => {
+				chk.checked = !allChecked;
+				chk.dispatchEvent(new Event("change"));
+			});
+		});
+
+		updateButtonLabel();
+	});
+</script>
+{% endblock %}

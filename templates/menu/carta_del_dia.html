@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Carta del Día - {{ fecha }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { text-align: center; }
+        .seccion { margin-bottom: 30px; }
+        h2 { border-bottom: 2px solid #ccc; padding-bottom: 5px; }
+        ul { list-style: none; padding: 0; }
+        li { padding: 5px 0; }
+        .precio { float: right; font-weight: bold; }
+    </style>
+</head>
+<body>                
+    <h1>🍽 Carta del Día</h1>
+    <p style="text-align:center;">{{ fecha }}</p>
+
+    {% if entradas %}
+    <div class="seccion">
+        <h2>Entradas</h2>
+        <ul>
+            {% for plato in entradas %}
+            <li>{{ plato.nombre }} <span class="precio">S/ {{ plato.precio }}</span></li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if menus %}
+    <div class="seccion">
+        <h2>Menú del Día</h2>
+        <ul>
+            {% for plato in menus %}
+            <li>{{ plato.nombre }} <span class="precio">S/ {{ plato.precio }}</span></li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if desayunos %}
+    <div class="seccion">
+        <h2>Desayunos</h2>
+        <ul>
+            {% for plato in desayunos %}
+            <li>{{ plato.nombre }} <span class="precio">S/ {{ plato.precio }}</span></li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if carta %}
+    <div class="seccion">
+        <h2>Platos a la Carta</h2>
+        <ul>
+            {% for plato in carta %}
+            <li>{{ plato.nombre }} <span class="precio">S/ {{ plato.precio }}</span></li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Cierres de Caja{% endblock %}
+{% block content %}
+<h2>Cierres de Caja</h2>
+<a class="btn btn-primary mb-3" href="{% url 'caja:iniciar_cierre' %}">Registrar Cierre</a>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Mozo</th>
+            <th>Fecha</th>
+            <th>Turno</th>
+            <th>Total</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in cierres %}
+        <tr>
+            <td>{{ c.mozo }}</td>
+            <td>{{ c.fecha }}</td>
+            <td>{{ c.turno }}</td>
+            <td>S/ {{ c.total_sistema|floatformat:2 }}</td>
+            <td><a class="btn btn-sm btn-outline-primary" href="{% url 'caja:cierre_detail' c.id %}">Ver</a></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5">No hay cierres registrados.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% block title %}Pedido #{{ pedido.numero_diario }} — Mesa {{ pedido.mesa.numero }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">
+            <i class="fas fa-receipt text-primary"></i>
+            Pedido #{{ pedido.numero_diario }} — Mesa {{ pedido.mesa.numero }}
+        </h2>
+        <div class="d-flex gap-2">
+            <span class="badge 
+                {% if pedido.estado == 'PENDIENTE' %} bg-warning text-dark
+                {% elif pedido.estado == 'EN_COCINA' %} bg-info
+                {% elif pedido.estado == 'COMPLETO' %} bg-success
+                {% elif pedido.estado == 'CANCELADO' %} bg-danger
+                {% else %} bg-secondary {% endif %} fs-6">
+                {{ pedido.get_estado_display }}
+            </span>
+
+            {% if pedido.es_cortesia %}
+            <span class="badge bg-danger fs-6">
+                <i class="fas fa-gift"></i> Cortesía
+            </span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if pedido.enviado_cocina %}
+    <div class="alert alert-warning d-flex align-items-center gap-2">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+            <strong>Atención:</strong> Este pedido ya fue enviado a cocina.
+            Solo puedes <b>añadir ítems adicionales</b>, no modificar ni eliminar los existentes.
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Layout con dos columnas -->
+    <div class="row">
+        <!-- Columna izquierda: Detalles -->
+        <div class="col-md-8 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <i class="fas fa-utensils"></i> Detalles del Pedido
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover table-striped mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Item</th>
+                                <th class="text-end">Cant.</th>
+                                <th class="text-end">P. Unit</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Ítems pendientes de cocina -->
+                            {% for d in detalles %}
+                                {% if not d.preparado %}
+                                <tr class="table-warning">
+                                    <td>
+                                        {% if d.plato %}{{ d.plato.nombre }}{% else %}{{ d.producto.nombre }}{% endif %}
+                                        {% if d.observaciones %}
+                                        <div class="small text-muted">Obs: {{ d.observaciones }}</div>
+                                        {% endif %}
+                                        <span class="badge bg-danger ms-2">Nuevo</span>
+                                    </td>
+                                    <td class="text-end fw-bold">{{ d.cantidad }}</td>
+                                    <td class="text-end">S/ {{ d.precio_unitario|floatformat:2 }}</td>
+                                    <td class="text-end fw-bold">S/ {{ d.subtotal|floatformat:2 }}</td>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+
+                            <!-- Ítems ya enviados a cocina -->
+                            {% for d in detalles %}
+                                {% if d.preparado %}
+                                <tr class="text-muted">
+                                    <td>
+                                        {% if d.plato %}{{ d.plato.nombre }}{% else %}{{ d.producto.nombre }}{% endif %}
+                                        {% if d.observaciones %}
+                                        <div class="small text-muted">Obs: {{ d.observaciones }}</div>
+                                        {% endif %}
+                                        <span class="badge bg-secondary ms-2">Enviado</span>
+                                    </td>
+                                    <td class="text-end fw-bold">{{ d.cantidad }}</td>
+                                    <td class="text-end">S/ {{ d.precio_unitario|floatformat:2 }}</td>
+                                    <td class="text-end fw-bold">S/ {{ d.subtotal|floatformat:2 }}</td>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th colspan="3" class="text-end">Total</th>
+                                <th class="text-end text-primary fs-5">S/ {{ pedido.total|floatformat:2 }}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha: Acciones -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <i class="fas fa-cogs"></i> Acciones
+                </div>
+                <div class="card-body">
+
+                    <!-- Botones principales -->
+                    <div class="d-grid gap-2 mb-3">
+                        <a href="{% url 'pedidos:ver_boleta_pdf' pedido.id %}" target="_blank"
+                           class="btn btn-outline-primary btn-sm d-flex justify-content-center align-items-center gap-2"
+                           data-bs-toggle="tooltip" title="Ver o imprimir la boleta en PDF">
+                            <i class="fas fa-file-pdf"></i> Boleta
+                        </a>
+
+                        <form method="post" action="{% url 'pedidos:marcar_como_pagado' pedido.id %}" id="form-marcar-pagado">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="btn btn-success btn-sm w-100 d-flex justify-content-center align-items-center gap-2"
+                                    data-bs-toggle="tooltip" title="Confirmar pago y liberar la mesa">
+                                <i class="fas fa-check-circle"></i> Pagado
+                            </button>
+                        </form>
+
+                        <form method="post" action="{% url 'pedidos:marcar_como_cortesia' pedido.id %}" id="form-marcar-cortesia">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="btn btn-danger btn-sm w-100 d-flex justify-content-center align-items-center gap-2"
+                                    data-bs-toggle="tooltip" title="Registrar pedido como cortesía, no suma en caja">
+                                <i class="fas fa-gift"></i> Cortesía
+                            </button>
+                        </form>
+                    </div>
+
+                    <hr class="my-2">
+
+                    <!-- Acciones secundarias -->
+                    <div class="d-grid gap-2">
+                        <form method="post" action="{% url 'pedidos:cambiar_estado' pk=pedido.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="estado" value="EN_COCINA">
+                            <button type="submit" class="btn btn-outline-info btn-sm w-100">
+                                <i class="fas fa-utensils"></i> Cocina
+                            </button>
+                        </form>
+
+                        <form method="post" action="{% url 'pedidos:cambiar_estado' pk=pedido.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="estado" value="COMPLETO">
+                            <button type="submit" class="btn btn-outline-success btn-sm w-100">
+                                <i class="fas fa-check"></i> Completo
+                            </button>
+                        </form>
+
+                        <form method="post" action="{% url 'pedidos:cambiar_estado' pk=pedido.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="estado" value="CANCELADO">
+                            <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                        </form>
+
+                        <a href="{% url 'pedidos:editar_pedido' pedido.id %}"
+                           class="btn btn-outline-warning btn-sm w-100 d-flex justify-content-center align-items-center gap-2">
+                            <i class="fas fa-edit"></i> 
+                            {% if pedido.enviado_cocina %}Añadir{% else %}Editar{% endif %}
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmaciones JS -->
+<script>
+    document.getElementById('form-marcar-pagado').addEventListener('submit', function (e) {
+        if (!confirm("✅ Confirmar: marcar pedido#{{ pedido.numero_diario }} como PAGADO?")) {
+            e.preventDefault();
+        }
+    });
+    document.getElementById('form-marcar-cortesia').addEventListener('submit', function (e) {
+        if (!confirm("🎁 Confirmar: marcar pedido #{{ pedido.numero_diario }} como CORTESÍA?")) {
+            e.preventDefault();
+        }
+    });
+</script>
+{% endblock %}

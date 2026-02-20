@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card card-main">
+    <div class="card-header bg-dark text-white">
+        <h4>Confirmar Pedido Completo</h4>
+    </div>
+    <div class="card-body">
+        <h5>Pedido #{{ pedido.id }} - Mesa {{ pedido.mesa.numero }}</h5>
+        <p>Cliente: {{ pedido.cliente }}</p>
+        
+        <h6 class="mt-4">Órdenes relacionadas:</h6>
+        <ul>
+            {% for orden in ordenes %}
+            <li>Orden #{{ orden.id }} - {{ orden.get_estado_display }}</li>
+            {% endfor %}
+        </ul>
+        
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="fas fa-check-circle"></i> Confirmar Pedido Completo
+            </button>
+            <a href="{% url 'cocina:orden_list' %}" class="btn btn-secondary">
+                Cancelar
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

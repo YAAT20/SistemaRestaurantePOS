@@ -1,0 +1,45 @@
+<div class="modal fade" id="modalItem" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            
+            <!-- Header -->
+            <div class="modal-header">
+                <h5 class="modal-title">Añadir al Pedido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <!-- Hidden fields -->
+                <input type="hidden" id="modalItemId">
+                <input type="hidden" id="modalItemTipo">
+
+                <!-- Nombre -->
+                <p id="modalItemNombre" class="fw-bold fs-5"></p>
+                <p class="text-muted">Precio: S/ <span id="modalItemPrecio"></span></p>
+
+                <!-- Cantidad -->
+                <div class="input-group mb-3">
+                    <button class="btn btn-outline-secondary" type="button" id="btnMenos">−</button>
+                    <input type="number" id="modalItemCantidad" class="form-control text-center" min="1" value="1">
+                    <button class="btn btn-outline-secondary" type="button" id="btnMas">+</button>
+                </div>
+
+                <!-- Observaciones -->
+                <label class="form-label">Observaciones</label>
+                <textarea id="modalItemObs" class="form-control mb-3" rows="2"
+                          placeholder="Ej: sin ají, sin sal..."></textarea>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="modalAddContinuar">
+                    Añadir y seguir
+                </button>
+                <button type="button" class="btn btn-primary" id="modalItemAdd">
+                    <i class="fas fa-plus-circle"></i> Añadir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

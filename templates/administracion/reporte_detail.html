@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card card-main">
+    <div class="card-header bg-dark text-white">
+        <h4>Detalle Reporte {{ reporte.tipo_reporte|title }}</h4>
+    </div>
+    <div class="card-body">
+        <p><strong>Rango:</strong> {{ reporte.fecha_inicio }} a {{ reporte.fecha_fin }}</p>
+        <p><strong>Total ventas:</strong> S/ {{ reporte.total_ventas }}</p>
+        <p><strong>Ventas Menú del Día:</strong> S/ {{ reporte.ventas_menu_dia|floatformat:2 }}</p>
+        <p><strong>Ventas Carta:</strong> S/ {{ reporte.ventas_carta|floatformat:2 }}</p>
+        <p><strong>Ventas Productos:</strong> S/ {{ reporte.ventas_productos|floatformat:2 }}</p>
+        {% for tipo, plato in platos_por_tipo.items %}
+            {% if plato %}
+                <p><strong>Plato más vendido de {{ tipo|title }}:</strong> {{ plato.nombre }} ({{ plato.cantidad }} uds)</p>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

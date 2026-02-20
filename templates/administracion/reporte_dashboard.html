@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-5">
+
+    <!-- Encabezado -->
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-primary">📊 Dashboard de Ventas</h2>
+        <p class="text-muted">Resumen general y análisis de desempeño</p>
+    </div>
+
+    <!-- Cards resumen -->
+    <div class="row g-4 mb-5">
+        {% include "partials/dashboard_card.html" with title="Ventas Hoy" value=ventas_hoy color="primary" icon="fas fa-coins" %}
+        {% include "partials/dashboard_card.html" with title="Ventas Semana" value=ventas_semana color="success" icon="fas fa-calendar-week" %}
+        {% include "partials/dashboard_card.html" with title="Ventas Mes" value=ventas_mes color="info" icon="fas fa-calendar-alt" %}
+        {% include "partials/dashboard_card.html" with title="Reportes Generados" value=reportes|length color="dark" icon="fas fa-file-alt" %}
+    </div>
+
+    <!-- Gráficos principales -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-dark text-white fw-bold">
+                    📌 Ventas por tipo de reporte
+                </div>
+                <div class="card-body">
+                    <canvas id="ventasTipo" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-dark text-white fw-bold">
+                    📈 Evolución de ventas mensuales
+                </div>
+                <div class="card-body">
+                    <canvas id="ventasMensuales" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos y platos más vendidos -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-warning fw-bold text-dark">
+                    🍽️ Plato más vendido hoy 
+                    {% now "d/m/Y" %}  <!-- Fecha actual -->
+                </div>
+                <div class="card-body text-center">
+                    {% if plato_dia %}
+                        <h5 class="fw-bold">{{ plato_dia.nombre }}</h5>
+                        <p class="mb-0">Cantidad: <strong>{{ cantidad_plato_dia }}</strong></p>
+                    {% else %}
+                        <p class="text-muted">No hay datos</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-warning fw-bold text-dark">
+                    🍽️ Plato más vendido este mes 
+                    {% now "m/Y" %}  <!-- Mes y año -->
+                </div>
+                <div class="card-body text-center">
+                    {% if plato_mes %}
+                        <h5 class="fw-bold">{{ plato_mes.nombre }}</h5>
+                        <p class="mb-0">Cantidad: <strong>{{ cantidad_plato_mes }}</strong></p>
+                    {% else %}
+                        <p class="text-muted">No hay datos</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-info fw-bold text-white">
+                    🛒 Producto más vendido hoy 
+                    {% now "d/m/Y" %}
+                </div>
+                <div class="card-body text-center">
+                    {% if producto_dia %}
+                        <h5 class="fw-bold">{{ producto_dia.nombre }}</h5>
+                        <p class="mb-0">Cantidad: <strong>{{ cantidad_producto_dia }}</strong></p>
+                    {% else %}
+                        <p class="text-muted">No hay datos</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-info fw-bold text-white">
+                    🛒 Producto más vendido este mes 
+                    {% now "m/Y" %}
+                </div>
+                <div class="card-body text-center">
+                    {% if producto_mes %}
+                        <h5 class="fw-bold">{{ producto_mes.nombre }}</h5>
+                        <p class="mb-0">Cantidad: <strong>{{ cantidad_producto_mes }}</strong></p>
+                    {% else %}
+                        <p class="text-muted">No hay datos</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Tops -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-secondary text-white fw-bold">🥇 Top 5 productos más vendidos</div>
+                <div class="card-body">
+                    <canvas id="topProductosCantidadBar" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top platos -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-secondary text-white fw-bold">🍽️ Top 5 platos más vendidos</div>
+                <div class="card-body">
+                    <canvas id="topPlatos" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla últimos reportes -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white fw-bold">📑 Últimos reportes generados</div>
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Desde</th>
+                        <th>Hasta</th>
+                        <th>Total Ventas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in reportes %}
+                    <tr>
+                        <td>{{ r.get_tipo_reporte_display }}</td>
+                        <td>{{ r.fecha_inicio|date:"d/m/Y" }}</td>
+                        <td>{{ r.fecha_fin|date:"d/m/Y" }}</td>
+                        <td><span class="fw-bold text-success">S/ {{ r.total_ventas|floatformat:2 }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-3">⚠️ No hay reportes generados</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Datos desde Django -->
+<script id="totalPorTipoData" type="application/json">{{ total_por_tipo|safe }}</script>
+<script id="ventasMensualesData" type="application/json">{{ ventas_mensuales|safe }}</script>
+<script id="topProductosCantidadData" type="application/json">{{ top_productos_cantidad|safe }}</script>
+<script id="topProductosMontoData" type="application/json">{{ top_productos_monto|safe }}</script>
+<script id="topPlatosData" type="application/json">{{ top_platos|safe }}</script>
+
+<script>
+    const colores = ['#007bff', '#28a745', '#ffc107', '#17a2b8', '#6f42c1', '#ff6384'];
+
+    const totalPorTipo = JSON.parse(document.getElementById("totalPorTipoData").textContent);
+    const ventasMensuales = JSON.parse(document.getElementById("ventasMensualesData").textContent);
+    const topProductosCantidad = JSON.parse(document.getElementById("topProductosCantidadData").textContent);
+    const topProductosMonto = JSON.parse(document.getElementById("topProductosMontoData").textContent);
+    const topPlatos = JSON.parse(document.getElementById("topPlatosData").textContent);
+
+    // Ventas por tipo
+    new Chart(document.getElementById('ventasTipo'), {
+        type: 'bar',
+        data: {
+            labels: totalPorTipo.map(r => r.tipo_reporte),
+            datasets: [{
+                label: 'Total Ventas (S/)',
+                data: totalPorTipo.map(r => r.total),
+                backgroundColor: colores.slice(0, totalPorTipo.length)
+            }]
+        },
+        options: { responsive: true, plugins: { tooltip: { callbacks: { label: ctx => `S/ ${ctx.raw.toFixed(2)}` } } } }
+    });
+
+    // Evolución mensual
+    new Chart(document.getElementById('ventasMensuales'), {
+        type: 'line',
+        data: {
+            labels: ventasMensuales.map(r => new Date(r.fecha_inicio).toLocaleDateString('es-PE', { month: 'short', year: 'numeric' })),
+            datasets: [{
+                label: 'Ventas (S/)',
+                data: ventasMensuales.map(r => r.total_ventas),
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40,167,69,0.2)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+
+    // 🥇 Top productos por cantidad (Barra)
+    new Chart(document.getElementById('topProductosCantidadBar'), {
+        type: 'bar',
+        data: {
+            labels: topProductosCantidad.map(r => r.producto__nombre),
+            datasets: [{
+                label: 'Unidades vendidas',
+                data: topProductosCantidad.map(r => r.cantidad),
+                backgroundColor: colores.slice(0, topProductosCantidad.length)
+            }]
+        },
+        options: { 
+            responsive: true, 
+            plugins: { 
+                tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.raw}` } } 
+            },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    // Top platos por cantidad
+    new Chart(document.getElementById('topPlatos'), {
+        type: 'bar',
+        data: {
+            labels: topPlatos.map(r => r.plato__nombre),
+            datasets: [{
+                label: 'Unidades vendidas',
+                data: topPlatos.map(r => r.total),
+                backgroundColor: colores.slice(0, topPlatos.length)
+            }]
+        },
+        options: { 
+            responsive: true, 
+            plugins: { 
+                tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.raw}` } } 
+            },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+</script>
+{% endblock %}

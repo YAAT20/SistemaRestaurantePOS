@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Pedidos{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-receipt text-primary me-2"></i> Listado de Pedidos</h2>
+    <a href="{% url 'pedidos:crear_pedido' %}" class="btn btn-success">
+        <i class="fas fa-plus"></i> Nuevo Pedido
+    </a>
+</div>
+
+<!-- 🔹 Filtros mejorados -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="fecha" class="form-label fw-bold">Fecha específica</label>
+                <input type="date" name="fecha" id="fecha" value="{{ request.GET.fecha|default:today }}"
+                    class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Rango de fechas</label>
+                <div class="input-group">
+                    <input type="date" name="fecha_inicio" id="fecha_inicio"
+                        value="{{ request.GET.fecha_inicio|default:'' }}"
+                        class="form-control" placeholder="Desde">
+                    <span class="input-group-text">a</span>
+                    <input type="date" name="fecha_fin" id="fecha_fin"
+                        value="{{ request.GET.fecha_fin|default:'' }}"
+                        class="form-control" placeholder="Hasta">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label for="estado" class="form-label fw-bold">Estado</label>
+                <select name="estado" id="estado" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="PENDIENTE" {% if request.GET.estado == "PENDIENTE" %}selected{% endif %}>Pendiente</option>
+                    <option value="PREPARACION" {% if request.GET.estado == "PREPARACION" %}selected{% endif %}>En preparación</option>
+                    <option value="LISTO" {% if request.GET.estado == "LISTO" %}selected{% endif %}>Listo</option>
+                    <option value="ENTREGADO" {% if request.GET.estado == "ENTREGADO" %}selected{% endif %}>Entregado</option>
+                    <option value="PAGADO" {% if request.GET.estado == "PAGADO" %}selected{% endif %}>Pagado</option>
+                    <option value="CANCELADO" {% if request.GET.estado == "CANCELADO" %}selected{% endif %}>Cancelado</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2 mt-md-0 mt-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter"></i> Aplicar Filtros
+                </button>
+                <a href="{% url 'pedidos:pedido_list' %}" class="btn btn-outline-secondary" title="Limpiar filtros">
+                    <i class="fas fa-undo"></i>
+                </a>
+            </div>
+        </form>
+        <!-- Mostrar filtros activos -->
+        {% if request.GET %}
+        <div class="mt-3">
+            <small class="text-muted">Filtros activos:</small>
+            {% if request.GET.fecha %}
+            <span class="badge bg-info ms-2">Fecha: {{ request.GET.fecha }}</span>
+            {% endif %}
+            {% if request.GET.fecha_inicio and request.GET.fecha_fin %}
+            <span class="badge bg-info ms-2">Rango: {{ request.GET.fecha_inicio }} al {{ request.GET.fecha_fin }}</span>
+            {% endif %}
+            {% if request.GET.estado %}
+            <span class="badge bg-info ms-2">Estado: {{ request.GET.estado }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 🔹 Pedidos por mesa -->
+<div class="row g-3">
+    {% for mesa in mesas %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
+            <!-- Encabezado mesa -->
+            <div class="card-header d-flex justify-content-between align-items-center 
+                {% if mesa.tiene_pendientes %}bg-danger text-white{% else %}bg-success text-white{% endif %}">
+                
+                <span>
+                    <i class="fas fa-chair me-2"></i> Mesa {{ mesa.mesa }}
+                    {% if mesa.tiene_pendientes %}
+                        <i class="fas fa-exclamation-triangle ms-1" title="Tiene pedidos pendientes"></i>
+                    {% endif %}
+                </span>
+                
+                <span class="badge {% if mesa.pedidos|length > 0 %}bg-light text-dark{% else %}bg-secondary{% endif %}">
+                    {{ mesa.pedidos|length }} pedido{{ mesa.pedidos|length|pluralize }}
+                </span>
+            </div>
+
+            <!-- Contenido pedidos -->
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Mozo</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in mesa.pedidos %}
+                            <tr>
+                                <td class="fw-bold">#{{ p.numero_diario }}</td>
+                                <td>{{ p.mozo.first_name|default:p.mozo.username }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if p.estado == 'PENDIENTE' %}bg-warning text-dark
+                                        {% elif p.estado == 'PREPARACION' %}bg-info
+                                        {% elif p.estado == 'LISTO' %}bg-primary
+                                        {% elif p.estado == 'ENTREGADO' %}bg-success
+                                        {% elif p.estado == 'PAGADO' %}bg-secondary
+                                        {% elif p.estado == 'CANCELADO' %}bg-dark
+                                        {% else %}bg-light text-dark{% endif %}">
+                                        {{ p.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>{{ p.fecha_hora|date:"d/m H:i" }}</td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'pedidos:pedido_resumen' p.id %}" 
+                                           class="btn btn-outline-primary" 
+                                           title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if p.estado != 'PAGADO' and p.estado != 'CANCELADO' %}
+                                        <a href="{% url 'pedidos:editar_pedido' p.id %}" 
+                                           class="btn btn-outline-secondary" 
+                                           title="Editar pedido">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-3">
+                                    <i class="fas fa-inbox me-1"></i> Sin pedidos
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle me-2"></i> No hay pedidos registrados con los filtros aplicados
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Paginación -->
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                &laquo; Primera
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                Anterior
+            </a>
+        </li>
+        {% endif %}
+
+        <li class="page-item disabled">
+            <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        </li>
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                Siguiente
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                Última &raquo;
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const fecha = document.getElementById("fecha");
+        const inicio = document.getElementById("fecha_inicio");
+        const fin = document.getElementById("fecha_fin");
+        
+        // Deshabilitar fecha si hay rango seleccionado y viceversa
+        function toggleFecha() {
+            if (inicio.value || fin.value) {
+                fecha.disabled = true;
+            } else {
+                fecha.disabled = false;
+            }
+            
+            if (fecha.value) {
+                inicio.disabled = true;
+                fin.disabled = true;
+            } else {
+                inicio.disabled = false;
+                fin.disabled = false;
+            }
+        }
+        
+        // Ejecutar al cargar
+        toggleFecha();
+        
+        // Escuchar cambios
+        fecha.addEventListener("change", toggleFecha);
+        inicio.addEventListener("change", toggleFecha);
+        fin.addEventListener("change", toggleFecha);
+        
+        // Mensaje para indicar que se están aplicando filtros
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function() {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Filtrando...';
+            submitBtn.disabled = true;
+        });
+    });
+</script>
+
+<style>
+    .table tr {
+        transition: background-color 0.2s;
+    }
+    .table tr:hover {
+        background-color: rgba(0,0,0,0.03) !important;
+    }
+    .badge {
+        font-size: 0.75em;
+    }
+    .card {
+        transition: transform 0.2s;
+    }
+</style>
+{% endblock %}

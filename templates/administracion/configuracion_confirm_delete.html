@@ -1,0 +1,9 @@
+{% extends 'base.html' %} {% block title %}Eliminar Configuración{% endblock %}
+{% block content %}
+<h2>¿Eliminar configuración {{ object.nombre }}?</h2>
+<form method="post">
+    {% csrf_token %}
+    <button class="btn btn-danger">Eliminar</button>
+    <a href="{% url 'configuracion_list' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

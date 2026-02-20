@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Usuarios{% endblock %}
+{% block content %}
+<h2>Usuarios</h2>
+<a class="btn btn-primary mb-3" href="{% url 'usuarios:usuario_create' %}">Crear Usuario</a>
+<table class="table table-sm">
+	<thead>
+		<tr>
+			<th>Usuario</th>
+			<th>Nombre</th>
+			<th>Rol</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for u in usuarios %}
+		<tr>
+			<td>{{ u.username }}</td>
+			<td>{{ u.get_full_name }}</td>
+			<td>{{ u.get_rol_display }}</td>
+			<td>
+				<a class="btn btn-sm btn-outline-secondary" href="{% url 'usuarios:usuario_update' u.id %}">Editar</a>
+			</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% endblock %}

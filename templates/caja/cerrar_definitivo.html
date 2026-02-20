@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h2>Cerrar caja — Cierre #{{ object.id }}</h2>
+  <p class="text-muted">Mozo: {{ object.mozo }} — Fecha: {{ object.fecha }} — Turno: {{ object.get_turno_display }}</p>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">Resumen del sistema</h5>
+      <div class="row">
+        <div class="col-md-4"><strong>Total menú (sistema):</strong> S/ {{ object.total_menu_sistema|floatformat:2 }}</div>
+        <div class="col-md-4"><strong>Total carta (sistema):</strong> S/ {{ object.total_carta_sistema|floatformat:2 }}</div>
+        <div class="col-md-4"><strong>Total otros (sistema):</strong> S/ {{ object.total_otros_sistema|floatformat:2 }}</div>
+        <div class="col-md-4"><strong>Total sistema:</strong> S/ {{ object.total_sistema|floatformat:2 }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">Totales físicos verificados</h5>
+      <div class="row">
+        <div class="col-md-4"><strong>Efectivo reportado:</strong> {% if object.efectivo_reportado %}S/ {{ object.efectivo_reportado|floatformat:2 }}{% else %}-{% endif %}</div>
+        <div class="col-md-4"><strong>Tarjetas:</strong> {% if object.tarjetas_reportadas %}S/ {{ object.tarjetas_reportadas|floatformat:2 }}{% else %}-{% endif %}</div>
+        <div class="col-md-4"><strong>Otros medios:</strong> {% if object.otros_medios %}S/ {{ object.otros_medios|floatformat:2 }}{% else %}-{% endif %}</div>
+      </div>
+      <hr>
+      <div><strong>Diferencia:</strong> {% if object.diferencia != None %}S/ {{ object.diferencia|floatformat:2 }}{% else %}-{% endif %}</div>
+      <div class="text-muted small mt-2">Estado actual: {{ object.get_estado_display }}</div>
+    </div>
+  </div>
+
+  <form method="post" id="form-cerrar">
+    {% csrf_token %}
+    <div class="form-group mb-3">
+      <label for="id_observaciones">Observaciones (opcional)</label>
+      <textarea name="observaciones" id="id_observaciones" class="form-control" rows="3">{{ object.observaciones }}</textarea>
+    </div>
+
+    {% comment %} Mostrar botón sólo si el cierre está en el estado que permite cierre definitivo. Ajustar si usas otra lógica. {% endcomment %}
+    {% if object.estado == 'EFECTIVO_VERIFICADO' %}
+      <button type="submit" class="btn btn-danger" id="btn-cerrar">Cerrar definitivamente la caja</button>
+      <a href="{% url 'caja:cierre_detail' object.pk %}" class="btn btn-secondary ms-2">Volver al detalle</a>
+    {% else %}
+      <button type="button" class="btn btn-secondary" disabled>No se puede cerrar (estado: {{ object.get_estado_display }})</button>
+      <a href="{% url 'caja:cierre_detail' object.pk %}" class="btn btn-link ms-2">Ver detalle</a>
+    {% endif %}
+  </form>
+</div>
+
+<script>
+document.getElementById('form-cerrar').addEventListener('submit', function(e){
+  var confirmMsg = "¿Estás seguro? Al cerrar definitivamente la caja el estado quedará en CERRADO y no se podrá revertir.";
+  if(!confirm(confirmMsg)){
+    e.preventDefault();
+    return false;
+  }
+  // Dejar en submit normal
+});
+</script>
+{% endblock %}

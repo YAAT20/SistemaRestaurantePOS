@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Movimiento de Inventario{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>{% if object %}Editar{% else %}Nuevo{% endif %} Movimiento</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a href="{% url 'inventario:movimiento_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if pedido %}Editar Pedido #{{ pedido.id }}{% else %}Crear Pedido{% endif %}{% endblock %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/pedidos.css' %}">
+
+
+<div class="container pedido-container">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="page-header">
+                <h2>
+                    <i class="fas fa-plus-circle"></i>
+                    {% if pedido %}Editar Pedido #{{ pedido.id }}{% else %}Crear Nuevo Pedido{% endif %}
+                </h2>
+            </div>
+
+            {% if pedido and pedido.enviado_cocina %}
+            <div class="alert alert-warning alert-custom mb-4">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                    <div>
+                        <strong>Atención:</strong> Este pedido ya fue enviado a cocina.<br>
+                        Solo puedes <b>agregar nuevos ítems</b>, no modificar ni eliminar los existentes.
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <form method="post" id="pedidoForm"
+                action="{% if pedido %}{% url 'pedidos:editar_pedido' pedido.id %}{% else %}{% url 'pedidos:crear_pedido' %}{% endif %}">
+                {% csrf_token %}
+                {% if mesa_id %}
+                <input type="hidden" name="mesa" value="{{ mesa_id }}">
+                {% endif %}
+
+                <!-- Información del Cliente -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-user-circle"></i>
+                        Información del Cliente
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">
+                                <i class="fas fa-chair me-1"></i> Mesa
+                            </label>
+                            <select name="mesa" class="form-select" required {% if pedido %}disabled{% endif %}>
+                                {% for mesa in mesas %}
+                                <option value="{{ mesa.id }}" {% if mesa_id and mesa.id == mesa_id %}selected{% endif %}>
+                                    Mesa {{ mesa.numero }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">
+                                <i class="fas fa-user me-1"></i> Nombre del Cliente
+                            </label>
+                            <input type="text" name="cliente_nombre" class="form-control"
+                                placeholder="Ingrese el nombre"
+                                value="{{ pedido.cliente.nombre|default_if_none:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">
+                                <i class="fas fa-phone me-1"></i> Teléfono
+                            </label>
+                            <input type="text" name="cliente_telefono" class="form-control"
+                                placeholder="Ingrese el teléfono"
+                                value="{{ pedido.cliente.telefono|default_if_none:'' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Búsqueda -->
+                <div class="form-section">
+                    <div class="search-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="busqueda" class="form-control"
+                            placeholder="Buscar plato, menú o producto...">
+                    </div>
+
+                    <!-- Toggle button -->
+                    <div class="toggle-section">
+                        <button type="button" id="toggle-menu-entradas">
+                            <i class="fas fa-eye-slash"></i>
+                            <span>Ocultar Menús y Entradas</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Acordeón de categorías -->
+                <div class="accordion" id="accordionPlatos">
+                    {% for cat in categorias %}
+                    <div class="accordion-item plato-seccion {{ cat.tipo }}"
+                         {% if cat.tipo in 'menu entrada' and turno_tarde %} style="display:none;" {% endif %}>
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#cat{{ forloop.counter }}" aria-expanded="false">
+                                <i class="fas fa-utensils me-2"></i>
+                                {{ cat.nombre }} 
+                                <span class="badge bg-light text-dark ms-2">{{ cat.items.count }}</span>
+                            </button>
+                        </h2>
+                        <div id="cat{{ forloop.counter }}" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                {% if cat.items %}
+                                <div class="platos-grid">
+                                    {% for item in cat.items %}
+                                    <button type="button" class="btn {{ cat.color }} pos-btn"
+                                        data-bs-toggle="modal" data-bs-target="#modalItem"
+                                        data-id="{{ item.id }}"
+                                        data-nombre="{{ item.nombre }}"
+                                        data-precio="{% if cat.tipo == 'producto' %}{{ item.precio_venta }}{% elif cat.tipo == 'entrada' %}0{% else %}{{ item.precio }}{% endif %}"
+                                        data-tipo="{{ cat.tipo }}"
+                                        data-obs=""
+                                        data-cant="1"
+                                        {% if cat.tipo == 'menu' %}data-tiene-entrada="true"{% endif %}>
+                                        <span class="plato-nombre">{{ item.nombre }}</span>
+                                        <span class="plato-precio">
+                                            {% if cat.tipo == 'producto' %}
+                                            S/ {{ item.precio_venta }}
+                                            {% elif cat.tipo == 'entrada' %}
+                                            {% else %}
+                                            S/ {{ item.precio }}
+                                            {% endif %}
+                                        </span>
+                                    </button>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div class="empty-state">
+                                    <i class="fas fa-utensils"></i>
+                                    <p>No hay productos disponibles en esta categoría.</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Botón Guardar -->
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-save w-100">
+                        <i class="fas fa-save"></i>
+                        <span>{% if pedido %}Guardar Cambios{% else %}Guardar Pedido{% endif %}</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Resumen lateral -->
+        <div class="col-lg-4">
+            <div class="card resumen-card">
+                <div class="card-header">
+                    <i class="fas fa-receipt me-2"></i>
+                    Resumen del Pedido
+                </div>
+                <div class="card-body" id="resumenPedido">
+                    <div class="empty-state">
+                        <i class="fas fa-shopping-cart"></i>
+                        <p>No hay ítems en el pedido</p>
+                    </div>
+                </div>
+                <div class="card-footer" id="totalPedido">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Total:</span>
+                        <span>S/ 0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+{% include "pedidos/includes/modal_item.html" %}
+
+{% if pedido and pedido.enviado_cocina %}
+<script>
+    // Bloqueamos edición de ítems ya existentes
+    document.addEventListener("DOMContentLoaded", function() {
+        PEDIDO_INICIAL.forEach(item => {
+            const input = document.querySelector(`[name="${item.tipo}_${item.id}"]`);
+            if (input) {
+                input.disabled = true;
+            }
+        });
+    });
+</script>
+{% endif %}
+
+<script defer src="{% static 'pedidos/js/pedido_pos.js' %}"></script>
+{% endblock %}

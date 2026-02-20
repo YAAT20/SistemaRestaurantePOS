@@ -1,0 +1,90 @@
+<!-- cierre_detail.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card card-main">
+    <div class="card-header bg-dark text-white">
+        Detalles de Cierre #{{ cierre.id }}
+    </div>
+    <div class="card-body">
+        <!-- Resumen -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <h5>Información del Turno</h5>
+                <p><strong>Mozo:</strong> {{ cierre.mozo.get_full_name }}</p>
+                <p><strong>Fecha:</strong> {{ cierre.fecha }}</p>
+                <p><strong>Turno:</strong> {{ cierre.get_turno_display }}</p>
+                <p><strong>Estado:</strong>
+                    <span class="badge bg-{% if cierre.estado == 'CERRADO' %}success{% else %}warning{% endif %}">
+                        {{ cierre.get_estado_display }}
+                    </span>
+                </p>
+            </div>
+
+            <div class="col-md-4">
+                <h5>Totales del Sistema</h5>
+                <p><strong>Menú:</strong> S/ {{ cierre.total_menu_sistema }}</p>
+                <p><strong>Carta:</strong> S/ {{ cierre.total_carta_sistema }}</p>
+                <p><strong>Otros:</strong> S/ {{ cierre.total_otros_sistema }}</p>
+                <p><strong>Total Sistema:</strong> S/ {{ cierre.total_sistema }}</p>
+            </div>
+
+            {% if cierre.estado != 'VENTAS_REGISTRADAS' %}
+            <div class="col-md-4">
+                <h5>Totales Físicos</h5>
+                <p><strong>Efectivo:</strong> S/ {{ cierre.efectivo_reportado }}</p>
+                <p><strong>Tarjetas:</strong> S/ {{ cierre.tarjetas_reportadas }}</p>
+                <p><strong>Otros:</strong> S/ {{ cierre.otros_medios|default:"0" }}</p>
+                <p><strong>Diferencia:</strong>
+                    <span class="text-{% if cierre.diferencia == 0 %}success{% else %}danger{% endif %}">
+                        S/ {{ cierre.diferencia }}
+                    </span>
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Acciones -->
+        {% if puede_verificar %}
+        <a href="{% url 'caja:verificar_efectivo' cierre.pk %}" class="btn btn-primary">
+            <i class="fas fa-money-bill-wave"></i> Verificar Efectivo
+        </a>
+        {% endif %}
+
+        {% if puede_cerrar %}
+        <a href="{% url 'caja:cerrar_definitivo' cierre.pk %}" class="btn btn-success">
+            <i class="fas fa-lock"></i> Cerrar Definitivamente
+        </a>
+        {% endif %}
+
+        <!-- Detalle de Items Vendidos -->
+        <div class="mt-4">
+            <h5>Detalle de Ventas</h5>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Producto / Plato</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in detalle_items %}
+                    <tr>
+                        <td>{{ detalle.item }}</td>
+                        <td>{{ detalle.tipo }}</td>
+                        <td>{{ detalle.cantidad }}</td>
+                        <td>S/ {{ detalle.subtotal }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="table-secondary">
+                        <th colspan="3" class="text-end">TOTAL GENERAL</th>
+                        <th>S/ {{ total_general }}</th>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

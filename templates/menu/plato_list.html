@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/platos.css' %}">
+
+<div class="platos-header d-flex flex-column flex-md-row align-items-start align-items-md-center gap-3 mb-3">
+    <h2 class="m-0 d-flex align-items-center">
+        <i class="fas fa-utensils me-2 text-primary"></i> Menú de Platos
+    </h2>
+
+    <!-- Buscador -->
+    <form method="get" class="d-flex flex-nowrap ms-auto" style="gap: 0.5rem; max-width: 320px;">
+        <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Buscar plato..."
+            class="form-control form-control-sm" />
+        <button type="submit" class="btn btn-sm btn-primary d-flex align-items-center">
+            <i class="fas fa-search"></i>
+        </button>
+    </form>
+
+    <!-- Botones (solo ADMIN) -->
+    {% if user.rol == 'ADMIN' %}
+    <div class="btn-group">
+        <a href="{% url 'menu:plato_create' %}" class="btn btn-success btn-sm d-flex align-items-center">
+            <i class="fas fa-plus me-1"></i> Nuevo
+        </a>
+        <a href="{% url 'menu:reponer_stock' %}" class="btn btn-secondary btn-sm d-flex align-items-center">
+            <i class="fas fa-sync-alt me-1"></i> Reponer
+        </a>
+        <a href="{% url 'menu:configurar_platos_del_dia' %}" class="btn btn-warning btn-sm d-flex align-items-center">
+            <i class="fas fa-calendar-day me-1"></i> Configurar Día
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Tabs principales -->
+<ul class="nav nav-tabs mb-3" id="platosTabs" role="tablist">
+    <li class="nav-item">
+        <button class="nav-link active" id="desayunos-tab" data-bs-toggle="tab" data-bs-target="#desayunos" type="button" role="tab">
+            🥐 Desayunos
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" id="menu-tab" data-bs-toggle="tab" data-bs-target="#menu" type="button" role="tab">
+            🍲 Menú
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" id="carta-tab" data-bs-toggle="tab" data-bs-target="#carta" type="button" role="tab">
+            🍖 Carta
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="platosTabsContent">
+    <!--  Desayunos -->
+    <div class="tab-pane fade show active" id="desayunos" role="tabpanel">
+        {% include "menu/partials/_tabla_platos.html" with tipo="desayuno" titulo="Desayunos" %}
+    </div>
+
+    <!--  Menú (Entradas + Platos de menú) -->
+    <div class="tab-pane fade" id="menu" role="tabpanel">
+        <h5 class="fw-bold mt-3">Entradas</h5>
+        {% include "menu/partials/_tabla_platos.html" with tipo="entrada" titulo="Entradas" %}
+
+        <h5 class="fw-bold mt-4">Platos de Menú</h5>
+        {% include "menu/partials/_tabla_platos.html" with tipo="menu" titulo="Platos de Menú" %}
+    </div>
+
+    <!--  Carta -->
+    <div class="tab-pane fade" id="carta" role="tabpanel">
+        {% include "menu/partials/_tabla_platos.html" with tipo="carta" titulo="Carta" %}
+    </div>
+</div>
+
+<script>
+        document.addEventListener('DOMContentLoaded', function () {
+        // Inicializar popovers
+        const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+        popoverTriggerList.forEach(function (popoverTriggerEl) {
+            new bootstrap.Popover(popoverTriggerEl, { trigger: 'focus hover' });
+        });
+
+        // Mostrar/ocultar menús y entradas con persistencia
+        const toggleBtn = document.getElementById("toggle-menu-entradas");
+        const entradas = document.querySelectorAll(".plato-seccion.entrada");
+        const menus = document.querySelectorAll(".plato-seccion.menu");
+
+        // Preferencia guardada en localStorage
+        const preferencia = localStorage.getItem("mostrarMenusEntradas");
+
+        // Django inyecta un string: "true" o "false"
+        const defaultVisible = "{{ turno_tarde|yesno:'false,true' }}";
+
+        // visible será true/false real
+        let visible = (preferencia !== null) ? (preferencia === "true") : (defaultVisible === "true");
+
+        function actualizarVista() {
+            [...entradas, ...menus].forEach(sec => {
+                sec.style.display = visible ? "block" : "none";
+            });
+            toggleBtn.innerHTML = visible
+                ? '<i class="fas fa-eye-slash"></i> Ocultar Menús y Entradas'
+                : '<i class="fas fa-eye"></i> Mostrar Menús y Entradas';
+        }
+
+        actualizarVista();
+
+        toggleBtn.addEventListener("click", () => {
+            visible = !visible;
+            localStorage.setItem("mostrarMenusEntradas", visible);
+            actualizarVista();
+        });
+    });
+</script>
+
+<style>
+    /*  Ajustes */
+    .platos-header { flex-wrap: wrap; justify-content: space-between; }
+    .platos-table-container { animation: fadeIn 0.3s ease-in-out; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Mobile Cards */
+    @media (max-width: 768px) {
+        table th, table td { font-size: 0.85rem; padding: 0.4rem; }
+        .acciones-cell .btn { padding: 0.25rem 0.4rem; }
+    }
+</style>
+
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}{% if object %}Editar Plato{% else %}Crear Plato{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <div class="card shadow-lg border-0 rounded-3">
+        
+        <!-- Encabezado -->
+        <div class="card-header bg-gradient bg-primary text-white d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0 fw-bold">
+                <i class="fas fa-utensils me-2"></i>
+                {% if object %}Editar{% else %}Crear{% endif %} Plato
+            </h5>
+            <a href="{% url 'menu:plato_list' %}" class="btn btn-light btn-sm shadow-sm">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+
+        <!-- Cuerpo -->
+        <div class="card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <div class="row g-4">
+
+                    <!-- Nombre -->
+                    <div class="col-md-6">
+                        <label for="{{ form.nombre.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-tag text-secondary me-1"></i> Nombre
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-pen"></i></span>
+                            {{ form.nombre|add_class:"form-control" }}
+                        </div>
+                        {% if form.nombre.errors %}
+                            <div class="invalid-feedback d-block">{{ form.nombre.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Precio -->
+                    <div class="col-md-6" id="precio-field">
+                        <label for="{{ form.precio.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-dollar-sign text-success me-1"></i> Precio
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">S/</span>
+                            {{ form.precio|add_class:"form-control" }}
+                        </div>
+                        {% if form.precio.errors %}
+                            <div class="invalid-feedback d-block">{{ form.precio.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Tipo -->
+                    <div class="col-md-6">
+                        <label for="{{ form.tipo.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-list-ul text-info me-1"></i> Tipo
+                        </label>
+                        {{ form.tipo|add_class:"form-select" }}
+                        {% if form.tipo.errors %}
+                            <div class="invalid-feedback d-block">{{ form.tipo.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Stock Diario -->
+                    <div class="col-md-6">
+                        <label for="{{ form.stock_diario.id_for_label }}" class="form-label fw-semibold">
+                            <i class="fas fa-boxes text-warning me-1"></i> Stock Diario
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-layer-group"></i></span>
+                            {{ form.stock_diario|add_class:"form-control" }}
+                        </div>
+                        {% if form.stock_diario.errors %}
+                            <div class="invalid-feedback d-block">{{ form.stock_diario.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Disponible -->
+                    <div class="col-md-6 d-flex align-items-center mt-3">
+                        <div class="form-check form-switch">
+                            {{ form.disponible|add_class:"form-check-input" }}
+                            <label for="{{ form.disponible.id_for_label }}" class="form-check-label fw-semibold ms-2">
+                                <i class="fas fa-toggle-on text-success me-1"></i> Disponible
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{% url 'menu:plato_list' %}" class="btn btn-outline-secondary shadow-sm px-3">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary shadow-sm px-3">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const tipoSelect = document.getElementById("id_tipo");
+    const precioField = document.getElementById("precio-field");
+    const precioInput = document.getElementById("id_precio");
+
+    function togglePrecio() {
+        if (tipoSelect.value === "entrada") {
+            precioField.style.display = "none";
+            if (precioInput) precioInput.value = 0;
+        } else {
+            precioField.style.display = "block";
+        }
+    }
+    tipoSelect.addEventListener("change", togglePrecio);
+    togglePrecio();
+});
+</script>
+{% endblock %}

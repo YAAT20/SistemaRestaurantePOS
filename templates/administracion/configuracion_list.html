@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Configuración{% endblock %}
+{% block content %}
+<h2>Configuración del Restaurante</h2>
+<a class="btn btn-primary mb-3" href="{% url 'administracion:configuracion_create' %}">Nuevo</a>
+<ul class="list-group">
+    {% for cfg in configuraciones %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+            <strong>{{ cfg.nombre }}</strong><br>
+            {{ cfg.direccion }} — {{ cfg.telefono }}
+        </div>
+        <div>
+            <a class="btn btn-sm btn-outline-secondary"
+                href="{% url 'administracion:configuracion_update' cfg.id %}">Editar</a>
+        </div>
+    </li>
+    {% empty %}
+    <li class="list-group-item">No hay configuraciones.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Cierre{% endblock %} 
+{% block content %}
+<h2>Registrar Cierre de Caja</h2>
+<form method="post">
+	{% csrf_token %} {{ form.as_p }}
+	<button class="btn btn-success">Guardar</button>
+	<a href="{% url 'caja:cierre_list' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

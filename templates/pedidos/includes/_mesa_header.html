@@ -1,0 +1,16 @@
+<div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded {{ color }}">
+    <h5 class="mb-0">Mesa {{ mesa.numero }}</h5>
+    <div>
+        {% if mesa.estado == "LIBRE" %}
+        <a href="{% url 'pedidos:crear_pedido' %}?mesa={{ mesa.id }}" class="btn btn-sm btn-light">
+            <i class="fas fa-plus"></i> Crear Pedido
+        </a>
+        {% else %}
+        {% if mesa.pedidos.exists %}
+        <a href="{% url 'pedidos:pedido_resumen' mesa.pedidos.last.id %}" class="btn btn-sm btn-light">
+            <i class="fas fa-eye"></i> Ver Pedido
+        </a>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>

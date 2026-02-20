@@ -1,0 +1,14 @@
+<div class="col-md-3">
+    <div class="card text-white bg-{{ color }} shadow-sm">
+        <div class="card-body">
+            <h6 class="card-title">{{ title }}</h6>
+            <p class="card-text display-6">
+                {% if value is number %}
+                    S/ {{ value|floatformat:2 }}
+                {% else %}
+                    {{ value }}
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>

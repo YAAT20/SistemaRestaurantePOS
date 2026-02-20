@@ -1,0 +1,350 @@
+{% load tz static%}
+{{ pedido.fecha_hora|localtime }}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema de gestión para Restaurant M&M" />
+    <meta name="author" content="Restaurant M&M" />
+
+    <title>Restaurant M&M</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="{% static 'img/logo.png' %}" type="image/png" />
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mesas.css' %}">
+    <link rel="stylesheet" href="{% static 'css/platos.css' %}">
+
+</head>
+
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNavbar" role="navigation" aria-label="Navegación principal">
+        <div class="container-fluid">
+            <!-- Logo -->
+            <a class="navbar-brand d-flex align-items-center" href="/" aria-label="Ir a inicio">
+                <img src="{% static 'img/logo.png' %}" alt="Logo Restaurant M&M" width="35" height="35" class="me-2 rounded" id="navLogo">
+                <span class="fw-bold d-none d-sm-inline">Restaurant M&amp;M</span>
+                <span class="fw-bold d-sm-none">M&amp;M</span>
+            </a>
+
+            <!-- Botón toggle móvil -->
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+                aria-controls="nav" aria-expanded="false" aria-label="Abrir menú de navegación">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Links -->
+            <div class="collapse navbar-collapse" id="nav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'menu:plato_list' %}" data-page="menu">
+                            <i class="fas fa-utensils me-1"></i> 
+                            <span>Menú</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'pedidos:mesas_pedidos' %}" data-page="pedidos">
+                            <i class="fas fa-receipt me-1"></i> 
+                            <span>Pedidos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'cocina:orden_list' %}" data-page="cocina">
+                            <i class="fas fa-fire me-1"></i> 
+                            <span>Cocina</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'inventario:producto_list' %}" data-page="inventario">
+                            <i class="fas fa-boxes me-1"></i> 
+                            <span>Inventario</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'caja:cierre_list' %}" data-page="caja">
+                            <i class="fas fa-cash-register me-1"></i> 
+                            <span>Caja</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'administracion:reporte_dashboard' %}" data-page="reportes">
+                            <i class="fas fa-chart-bar me-1"></i> 
+                            <span>Reportes</span>
+                        </a>
+                    </li>
+                    {% if user.is_staff %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'administracion:configuracion_list' %}" data-page="configuracion">
+                            <i class="fas fa-cog me-1"></i> 
+                            <span>Configuración</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <!-- Usuario -->
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
+                            <div class="position-relative me-2 d-flex align-items-center justify-content-center rounded-circle bg-primary shadow"
+                                style="width: 36px; height: 36px;">
+                                <i class="fas fa-user text-white"></i>
+                            </div>
+                            <span class="fw-semibold d-none d-md-inline">{{ user.get_full_name|default:user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0" aria-labelledby="userDropdown">
+                            <li class="dropdown-header">
+                                <strong>{{ user.get_full_name|default:user.username }}</strong>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% if user.is_staff %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'usuarios:usuario_list' %}">
+                                    <i class="fas fa-users-cog me-2 text-warning"></i>Administrar Usuarios
+                                </a>
+                            </li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form action="{% url 'usuarios:logout' %}" method="post" class="m-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-link">
+                                        <i class="fas fa-sign-out-alt"></i>Cerrar sesión
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-sm btn-primary ms-2 px-3 py-1 rounded-pill"
+                            href="{% url 'usuarios:login' %}">
+                            <i class="fas fa-sign-in-alt me-1"></i> 
+                            <span>Ingresar</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="container my-2" style="padding-top: 80px;">
+        {% block content %}
+            <div class="container my-4">
+                <div class="card card-main animate__animated animate__fadeIn">
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <i class="fas fa-th-large me-2"></i>
+                            <span class="fw-bold">Panel de Control</span>
+                        </div>
+                        <div class="mt-2 mt-md-0">
+                            <small class="text-white-50">
+                                <i class="fas fa-user-circle me-1"></i>
+                                Bienvenido, <strong>{{ user.get_full_name|default:user.username }}</strong>
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <!-- Menú -->
+                        <a href="{% url 'menu:plato_list' %}" class="text-decoration-none" aria-label="Acceder al menú">
+                            <div class="option-card card-menu">
+                                <div class="card-icon">
+                                    <i class="fas fa-utensils"></i>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">Menú</h5>
+                                    <p class="card-text">Gestiona los platos ofrecidos por el restaurante.</p>
+                                    <button class="btn" aria-label="Acceder al menú">
+                                        Acceder <i class="fas fa-arrow-right ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Pedidos -->
+                        <a href="{% url 'pedidos:mesas_pedidos' %}" class="text-decoration-none" aria-label="Registrar nuevo pedido">
+                            <div class="option-card card-menu">
+                                <div class="card-icon">
+                                    <i class="fas fa-receipt"></i>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">Registro de Pedidos</h5>
+                                    <p class="card-text">Toma de pedidos a comensales y gestión de mesas.</p>
+                                    <button class="btn" aria-label="Crear nuevo pedido">
+                                        Nuevo Pedido <i class="fas fa-plus ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Cocina -->
+                        <a href="{% url 'cocina:orden_list' %}" class="text-decoration-none" aria-label="Ver órdenes de cocina">
+                            <div class="option-card card-menu">
+                                <div class="card-icon">
+                                    <i class="fas fa-fire"></i>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">Cocina</h5>
+                                    <p class="card-text">Visualiza y gestiona órdenes en preparación.</p>
+                                    <button class="btn" aria-label="Ver órdenes de cocina">
+                                        Ver Órdenes <i class="fas fa-utensils ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Inventario -->
+                        <a href="{% url 'inventario:producto_list' %}" class="text-decoration-none" aria-label="Ver inventario">
+                            <div class="option-card card-menu">
+                                <div class="card-icon">
+                                    <i class="fas fa-boxes"></i>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">Control de Inventario</h5>
+                                    <p class="card-text">Gestiona productos, stock y proveedores.</p>
+                                    <button class="btn" aria-label="Ver inventario">
+                                        Ver Inventario <i class="fas fa-clipboard-list ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Caja -->
+                        <a href="{% url 'caja:cierre_list' %}" class="text-decoration-none" aria-label="Gestionar caja">
+                            <div class="option-card card-menu">
+                                <div class="card-icon">
+                                    <i class="fas fa-cash-register"></i>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">Gestión de Caja</h5>
+                                    <p class="card-text">Registra pagos y realiza cierres diarios.</p>
+                                    <button class="btn" aria-label="Abrir caja">
+                                        Abrir Caja <i class="fas fa-lock-open ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Reportes -->
+                        <a href="{% url 'administracion:reporte_list' %}" class="text-decoration-none">
+                            <div class="option-card">
+                                <div class="card-icon"><i class="fas fa-chart-bar"></i></div>
+                                <div class="card-body">
+                                    <h5 class="card-title">Reportes y Análisis</h5>
+                                    <p class="card-text">Genera reportes de ventas y análisis.</p>
+                                    <button class="btn">Ver Reportes <i class="fas fa-chart-pie ms-1"></i></button>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="{% url 'administracion:reporte_dashboard' %}" class="text-decoration-none" aria-label="Ver reportes">
+                            <div class="option-card card-menu">
+                                <div class="card-icon">
+                                    <i class="fas fa-chart-bar"></i>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">Reportes y Análisis</h5>
+                                    <p class="card-text">Genera reportes de ventas y análisis estadísticos.</p>
+                                    <button class="btn" aria-label="Ver reportes">
+                                        Ver Reportes <i class="fas fa-chart-pie ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </a>
+
+                        {% if user.is_staff %}
+                        <!-- Usuarios -->
+                        <a href="{% url 'usuarios:usuario_list' %}" class="text-decoration-none" aria-label="Administrar usuarios">
+                            <div class="option-card card-menu">
+                                <div class="card-icon">
+                                    <i class="fas fa-users-cog"></i>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title">Gestión de Usuarios</h5>
+                                    <p class="card-text">Administra usuarios, roles y permisos del sistema.</p>
+                                    <button class="btn" aria-label="Administrar usuarios">
+                                        Administrar <i class="fas fa-user-shield ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endblock %}
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="mt-auto py-3 bg-dark text-white">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    <h5 class="mb-3">Restaurant M&amp;M</h5>
+                    <p class="small mb-0">Sistema de Gestión</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <div class="small">
+                        &copy; {% now "Y" %} Restaurant M&amp;M · Desarrollado con Django
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Navbar con efecto al hacer scroll
+        window.addEventListener("scroll", function () {
+            const navbar = document.querySelector(".navbar");
+            navbar.classList.toggle("scrolled", window.scrollY > 30);
+
+            // Efecto de reducción de logo al hacer scroll
+            const logo = document.querySelector(".navbar-brand img");
+            if (window.scrollY > 30) {
+                logo.style.height = "28px";
+            } else {
+                logo.style.height = "35px";
+            }
+        });
+
+        // Marcar elemento activo en navbar basado en la URL actual
+        document.querySelectorAll('.nav-link').forEach(link => {
+            if (window.location.href.includes(link.getAttribute('href'))) {
+                link.classList.add('active');
+            }
+        });
+        // Efecto hover mejorado para las tarjetas de opciones
+        document.querySelectorAll('.option-card').forEach(card => {
+            card.addEventListener('mouseenter', function () {
+                this.classList.add('animate__pulse');
+            });
+
+            card.addEventListener('mouseleave', function () {
+                this.classList.remove('animate__pulse');
+            });
+        });
+    </script>
+</body>
+
+</html>

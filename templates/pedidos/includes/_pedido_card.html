@@ -1,0 +1,17 @@
+<div
+	class="card mb-3 border-{% if pedido.estado == 'PAGADO' %}success{% elif pedido.estado == 'CANCELADO' %}danger{% elif pedido.estado == 'EN_COCINA' %}warning{% elif pedido.estado == 'COMPLETO' %}info{% else %}primary{% endif %}">
+	<div
+		class="card-header d-flex justify-content-between align-items-center bg-{% if pedido.estado == 'PAGADO' %}success{% elif pedido.estado == 'CANCELADO' %}danger{% elif pedido.estado == 'EN_COCINA' %}warning{% elif pedido.estado == 'COMPLETO' %}info{% else %}primary{% endif %} text-white">
+		<span>Pedido #{{ pedido.id }} - {{ pedido.get_estado_display }}</span>
+		<small>{{ pedido.fecha_hora|date:"H:i" }}</small>
+	</div>
+	<div class="card-body">
+		<p><strong>Cliente:</strong> {{ pedido.cliente|default:"-" }}</p>
+		<p><strong>Mozo:</strong> {{ pedido.mozo.username }}</p>
+		<p><strong>Total ítems:</strong> {{ pedido.detalles.count }}</p>
+		<p><strong>Total:</strong> S/ {{ pedido.total|floatformat:2 }}</p>
+		<a href="{% url 'pedidos:pedido_resumen' pedido.id %}" class="btn btn-primary btn-sm">
+			<i class="fas fa-eye"></i> Ver Detalle
+		</a>
+	</div>
+</div>
